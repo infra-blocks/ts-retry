@@ -1,16 +1,14 @@
 {
-  "name": "@infra-blocks/lib-template",
+  "name": "@infra-blocks/retry",
   "version": "0.0.0",
-  "description": "This repository is a template to generate repositories meant to hold the source code of NPM packages written in TypeScript.",
+  "description": "This repository exports utilities for generic retry logic.",
   "keywords": [
-    "template",
-    "typescript",
-    "esm",
-    "cjs"
+    "retry",
+    "promise"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/infra-blocks/ts-lib-template.git"
+    "url": "https://github.com/infra-blocks/ts-retry.git"
   },
   "license": "ISC",
   "author": "",
