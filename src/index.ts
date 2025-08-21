@@ -153,10 +153,13 @@ async function retryPromise<T, E = Error>(
   fn: (attempt: number) => Promise<T>,
   options?: RetryConfig<E>
 ): Promise<T> {
-  const { retries, factor, minIntervalMs, maxIntervalMs, isRetryableError } = {
-    ...DEFAULT_RETRY_CONFIG,
-    ...options,
-  };
+  const {
+    retries = DEFAULT_RETRY_CONFIG.retries,
+    factor = DEFAULT_RETRY_CONFIG.factor,
+    minIntervalMs = DEFAULT_RETRY_CONFIG.minIntervalMs,
+    maxIntervalMs = DEFAULT_RETRY_CONFIG.maxIntervalMs,
+    isRetryableError = DEFAULT_RETRY_CONFIG.isRetryableError,
+  } = options ?? {};
 
   return await promiseRetry(
     { retries, factor, minTimeout: minIntervalMs, maxTimeout: maxIntervalMs },
