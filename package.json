@@ -1,6 +1,6 @@
 {
   "name": "@infra-blocks/retry",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "This repository exports utilities for generic retry logic.",
   "keywords": [
     "retry",
