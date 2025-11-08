@@ -3,7 +3,7 @@ import { expect, sinon } from "@infra-blocks/test";
 import { range } from "@infra-blocks/iter";
 import VError from "verror";
 
-describe("retry", function () {
+describe("index", function () {
   describe(retry.name, function () {
     let clock: sinon.SinonFakeTimers;
     beforeEach("setup timers", () => {

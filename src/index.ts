@@ -1,5 +1,6 @@
 import promiseRetry = require("promise-retry");
-import { EmitterLike, EmitterLikeBase, Predicate } from "@infra-blocks/types";
+import { EmitterLike, EmitterLikeBase } from "@infra-blocks/emitter";
+import type { Predicate } from "@infra-blocks/types";
 
 /**
  * Default retry configuration.
