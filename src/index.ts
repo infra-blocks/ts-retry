@@ -65,10 +65,28 @@ export type RetryEvents<E = Error> = {
   /**
    * This event is emitted at the beginning of every attempt.
    *
-   * @param attempt - The attempt number. Starts with 1, and the first attempt does not count as a retry.
+   * Note that it is emitted regardless of whether this is the first attempt or it corresponds to a retry.
+   *
+   * @param params.attempt - The attempt number. Starts with 1, and the first attempt does not count as a retry.
+   * @param params.retryConfig - The full effective retry configuration used for this retry process.
    */
   attempt: (params: {
     attempt: number;
+    retryConfig: Required<RetryConfig<E>>;
+  }) => void;
+
+  /**
+   * This event is emitted when a retry is about to be performed.
+   *
+   * Unlike the `attempt` event, it is only emitted after a failure has occurred. However,
+   * for every emitted `retry` event, there is a corresponding `attempt`. `attempt` is called
+   * first.
+   *
+   * @param params.retry - The retry number. Starts with 1, which equates to attempt number 2.
+   * @param params.retryConfig - The full effective retry configuration used for this retry process.
+   */
+  retry: (params: {
+    retry: number;
     retryConfig: Required<RetryConfig<E>>;
   }) => void;
 };
@@ -104,6 +122,12 @@ class RetryImpl<T, E>
         attempt,
         retryConfig: { ...this.retryConfig },
       });
+      if (attempt > 1) {
+        this.emit("retry", {
+          retry: attempt - 1,
+          retryConfig: { ...this.retryConfig },
+        });
+      }
       return fn();
     };
     this.promise = retryPromise(wrapper, this.retryConfig);

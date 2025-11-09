@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-09
+
+### Added
+
+- The `retry` event: this one is only emitted starting on the second attempt, meaning
+an error always occurred before this was invoked. This is a complement to the `attempt`
+event, which is invoked on any attempt, including the first one (before any error could occur).
+
 ## [0.2.0] - 2025-11-08
 
 ### Added
@@ -45,6 +53,7 @@ across `undefined` values.
 
 - Initial release of the package containing the main `retry` utility function.
 
+[0.3.0]: https://github.com/infra-blocks/ts-retry/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/infra-blocks/ts-retry/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/infra-blocks/ts-retry/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/infra-blocks/ts-retry/compare/v0.1.0...v0.1.1
