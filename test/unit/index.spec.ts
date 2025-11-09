@@ -1,25 +1,34 @@
-import { retry } from "../../src/index.js";
+import { DEFAULT_RETRY_CONFIG, retry } from "../../src/index.js";
 import { expect, sinon } from "@infra-blocks/test";
 import { range } from "@infra-blocks/iter";
 import VError from "verror";
 
+declare module "mocha" {
+  interface Context {
+    clock: sinon.SinonFakeTimers;
+  }
+}
+
 describe("index", function () {
   describe(retry.name, function () {
-    let clock: sinon.SinonFakeTimers;
-    beforeEach("setup timers", () => {
-      clock = sinon.useFakeTimers();
+    beforeEach("setup timers", function () {
+      this.clock = sinon.useFakeTimers();
     });
 
-    afterEach("tear down timers", () => {
-      clock.restore();
+    afterEach("tear down timers", function () {
+      this.clock.restore();
     });
 
     function waitTime(params: {
       attempt: number;
-      factor: number;
-      minIntervalMs: number;
+      factor?: number;
+      minIntervalMs?: number;
     }): number {
-      const { attempt, factor, minIntervalMs } = params;
+      const {
+        attempt,
+        factor = DEFAULT_RETRY_CONFIG.factor,
+        minIntervalMs = DEFAULT_RETRY_CONFIG.minIntervalMs,
+      } = params;
       // We consider the attempt number the current one, but the wait time is calculated on the past number of
       // retries. The first attempt does not count as a retry.
       return Math.pow(factor, attempt - 2) * minIntervalMs;
@@ -27,8 +36,15 @@ describe("index", function () {
 
     async function test<
       T
-    >(params: { inner: sinon.SinonSpy; retryPromise: PromiseLike<T>; retries: number; factor: number; minIntervalMs: number }): Promise<void> {
-      const { inner, retryPromise, retries, factor, minIntervalMs } = params;
+    >(params: { clock: sinon.SinonFakeTimers; inner: sinon.SinonSpy; retryPromise: PromiseLike<T>; retries?: number; factor?: number; minIntervalMs?: number }): Promise<void> {
+      const {
+        clock,
+        inner,
+        retryPromise,
+        retries = DEFAULT_RETRY_CONFIG.retries,
+        factor = DEFAULT_RETRY_CONFIG.factor,
+        minIntervalMs = DEFAULT_RETRY_CONFIG.minIntervalMs,
+      } = params;
 
       const result = retryPromise.then(null, () => true);
       // Run the callbacks submitted for next loop iteration.
@@ -51,11 +67,9 @@ describe("index", function () {
     it("should default to retrying every second for 60 seconds", async function () {
       const inner = sinon.fake.rejects(new Error("always failing"));
       await test({
+        clock: this.clock,
         inner,
         retryPromise: retry(inner),
-        retries: 60,
-        factor: 1,
-        minIntervalMs: 1000,
       });
     });
 
@@ -67,6 +81,7 @@ describe("index", function () {
       const factor = 2;
       const minIntervalMs = 500;
       await test({
+        clock: this.clock,
         inner,
         retryPromise: retry(inner, { retries, factor, minIntervalMs }),
         retries,
@@ -93,34 +108,59 @@ describe("index", function () {
         expect(err.message).to.equal("Should go boom");
         failedCorrectly = true;
       });
-      await clock.tickAsync(1);
+      await this.clock.tickAsync(1);
       expect(inner).to.have.callCount(1);
       expect(failedCorrectly).to.be.false;
 
-      await clock.tickAsync(
-        waitTime({ attempt: 2, factor: 1, minIntervalMs: 1000 })
-      );
+      await this.clock.tickAsync(waitTime({ attempt: 2 }));
       expect(inner).to.have.callCount(2);
-
       expect(failedCorrectly).to.be.true;
     });
 
     it("should stop after a success and resolve to the right value", async function () {
-      const inner = () => Promise.resolve(10);
-      const retryPromise = retry(inner).on("attempt", ({ attempt }) => {
-        if (attempt < 5) {
-          throw new Error("didn't try enough");
+      let callCount = 0;
+      const inner = sinon.fake(() => {
+        callCount += 1;
+        if (callCount < 5) {
+          return Promise.reject(new Error("try harder"));
         }
+        return Promise.resolve(10);
       });
+      const r = retry(inner);
       // Run the callbacks submitted for next loop iteration.
-      await clock.tickAsync(1);
+      await this.clock.tickAsync(1);
 
       for (const attempt of range(2, 6)) {
-        await clock.tickAsync(
-          waitTime({ attempt, factor: 1, minIntervalMs: 1000 })
-        );
+        await this.clock.tickAsync(waitTime({ attempt }));
       }
-      await expect(retryPromise).to.eventually.equal(10);
+      await expect(r).to.eventually.equal(10);
+    });
+    it("should emit the 'attempt' and 'retry' events correctly", async function () {
+      const inner = sinon.fake.rejects(new Error("try harder"));
+      const onAttempt = sinon.fake();
+      const onRetry = sinon.fake();
+      const retries = 5;
+      // This test finishes before we run out of retries.
+      void retry(inner, { retries })
+        .on("attempt", onAttempt)
+        .on("retry", onRetry);
+
+      await this.clock.tickAsync(1);
+      expect(onAttempt).to.have.been.calledOnce;
+      expect(onAttempt.getCall(0)).to.have.been.calledWithMatch({ attempt: 1 });
+      expect(onRetry).to.not.have.been.called;
+
+      await this.clock.tickAsync(waitTime({ attempt: 2 }));
+      expect(onAttempt).to.have.been.calledTwice;
+      expect(onAttempt.getCall(1)).to.have.been.calledWithMatch({ attempt: 2 });
+      expect(onRetry).to.have.been.calledOnce;
+      expect(onRetry.getCall(0)).to.have.been.calledWithMatch({ retry: 1 });
+
+      await this.clock.tickAsync(waitTime({ attempt: 3 }));
+      expect(onAttempt).to.have.been.calledThrice;
+      expect(onAttempt.getCall(2)).to.have.been.calledWithMatch({ attempt: 3 });
+      expect(onRetry).to.have.been.calledTwice;
+      expect(onRetry.getCall(1)).to.have.been.calledWithMatch({ retry: 2 });
     });
   });
 });
