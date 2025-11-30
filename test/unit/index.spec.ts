@@ -1,7 +1,7 @@
-import { DEFAULT_RETRY_CONFIG, retry } from "../../src/index.js";
-import { expect, sinon } from "@infra-blocks/test";
 import { range } from "@infra-blocks/iter";
+import { expect, sinon } from "@infra-blocks/test";
 import VError from "verror";
+import { DEFAULT_RETRY_CONFIG, retry } from "../../src/index.js";
 
 declare module "mocha" {
   interface Context {
@@ -9,8 +9,8 @@ declare module "mocha" {
   }
 }
 
-describe("index", function () {
-  describe(retry.name, function () {
+describe("index", () => {
+  describe(retry.name, () => {
     beforeEach("setup timers", function () {
       this.clock = sinon.useFakeTimers();
     });
@@ -31,12 +31,17 @@ describe("index", function () {
       } = params;
       // We consider the attempt number the current one, but the wait time is calculated on the past number of
       // retries. The first attempt does not count as a retry.
-      return Math.pow(factor, attempt - 2) * minIntervalMs;
+      return factor ** (attempt - 2) * minIntervalMs;
     }
 
-    async function test<
-      T
-    >(params: { clock: sinon.SinonFakeTimers; inner: sinon.SinonSpy; retryPromise: PromiseLike<T>; retries?: number; factor?: number; minIntervalMs?: number }): Promise<void> {
+    async function test<T>(params: {
+      clock: sinon.SinonFakeTimers;
+      inner: sinon.SinonSpy;
+      retryPromise: PromiseLike<T>;
+      retries?: number;
+      factor?: number;
+      minIntervalMs?: number;
+    }): Promise<void> {
       const {
         clock,
         inner,
@@ -57,7 +62,7 @@ describe("index", function () {
       }
       // Do an extra one to show nothing changes.
       await clock.tickAsync(
-        waitTime({ attempt: retries * 2, factor, minIntervalMs })
+        waitTime({ attempt: retries * 2, factor, minIntervalMs }),
       );
       expect(inner).to.have.callCount(retries + 1);
 
@@ -98,7 +103,7 @@ describe("index", function () {
         .onSecondCall()
         .rejects(new Error("Should go boom"));
       const isRetryableError = sinon.fake(
-        (err: Error) => err.name === "RetryableError"
+        (err: Error) => err.name === "RetryableError",
       );
 
       let failedCorrectly = false;
