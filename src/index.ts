@@ -1,6 +1,11 @@
 import promiseRetry = require("promise-retry");
 
-import { type EmitterLike, EmitterLikeBase } from "@infra-blocks/emitter";
+import {
+  type AlwaysVoid,
+  Emitter,
+  type EmitterLike,
+  EmitterLikeBase,
+} from "@infra-blocks/emitter";
 import type { Predicate } from "@infra-blocks/types";
 
 /**
@@ -108,14 +113,14 @@ export interface Retry<T, E = Error>
 export type RetryFunction<R> = () => Promise<R>;
 
 class RetryImpl<T, E>
-  extends EmitterLikeBase<RetryEvents<E>>
+  extends EmitterLikeBase<RetryEvents<E>, AlwaysVoid<RetryEvents<E>>>
   implements Retry<T, E>
 {
   protected readonly promise: PromiseLike<T>;
   protected readonly retryConfig: Required<RetryConfig<E>>;
 
   constructor(fn: RetryFunction<T>, options?: RetryConfig<E>) {
-    super();
+    super({ emitter: Emitter.ignoringEach() });
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...options };
 
     const wrapper = (attempt: number) => {
