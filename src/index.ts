@@ -1,5 +1,6 @@
 import promiseRetry = require("promise-retry");
-import { EmitterLike, EmitterLikeBase } from "@infra-blocks/emitter";
+
+import { type EmitterLike, EmitterLikeBase } from "@infra-blocks/emitter";
 import type { Predicate } from "@infra-blocks/types";
 
 /**
@@ -16,7 +17,7 @@ export const DEFAULT_RETRY_CONFIG: Required<RetryConfig<unknown>> = {
   retries: 60,
   factor: 1,
   minIntervalMs: 1000,
-  maxIntervalMs: Infinity,
+  maxIntervalMs: Number.POSITIVE_INFINITY,
   isRetryableError: (): boolean => true,
 };
 
@@ -141,7 +142,7 @@ class RetryImpl<T, E>
     onrejected?:
       | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
       | undefined
-      | null
+      | null,
   ): PromiseLike<TResult1 | TResult2> {
     return this.promise.then(onfulfilled, onrejected);
   }
@@ -157,7 +158,7 @@ class RetryImpl<T, E>
  */
 export function retry<T, E = Error>(
   fn: RetryFunction<T>,
-  options?: RetryConfig<E>
+  options?: RetryConfig<E>,
 ): Retry<T, E> {
   return new RetryImpl(fn, options);
 }
@@ -176,7 +177,7 @@ export function retry<T, E = Error>(
  */
 async function retryPromise<T, E = Error>(
   fn: (attempt: number) => Promise<T>,
-  options?: RetryConfig<E>
+  options?: RetryConfig<E>,
 ): Promise<T> {
   const {
     retries = DEFAULT_RETRY_CONFIG.retries,
@@ -197,6 +198,6 @@ async function retryPromise<T, E = Error>(
         }
         throw err;
       }
-    }
+    },
   );
 }
