@@ -38,7 +38,7 @@
     "test:unit": "mocha --config test/unit/.mocharc.cjs 'test/unit/**/*.spec.ts'"
   },
   "dependencies": {
-    "@infra-blocks/emitter": "^0.1.0",
+    "@infra-blocks/emitter": "^0.2.1",
     "promise-retry": "^2.0.1"
   },
   "devDependencies": {
