@@ -29,7 +29,7 @@ export const DEFAULT_RETRY_CONFIG: Required<RetryConfig<unknown>> = {
 /**
  * Configuration for the retry function.
  */
-export interface RetryConfig<E = Error> {
+export interface RetryConfig<E = unknown> {
   /**
    * The amount of retries that will be attempted. Note that the first attempt
    * doest not count as a retry. In total, the amount of retries plus one
@@ -67,7 +67,7 @@ export interface RetryConfig<E = Error> {
 /**
  * Events and their handler types for the {@link Retry}.
  */
-export type RetryEvents<E = Error> = {
+export type RetryEvents<E = unknown> = {
   /**
    * This event is emitted at the beginning of every attempt.
    *
@@ -103,7 +103,7 @@ export type RetryEvents<E = Error> = {
  * This type is both a promise and an event emitter, where the events are described as in
  * {@link RetryEvents}.
  */
-export interface Retry<T, E = Error>
+export interface Retry<T, E = unknown>
   extends EmitterLike<RetryEvents<E>>,
     PromiseLike<T> {}
 
@@ -161,7 +161,7 @@ class RetryImpl<T, E>
  *
  * @returns A {@link Retry} that is configured with the provided arguments.
  */
-export function retry<T, E = Error>(
+export function retry<T, E = unknown>(
   fn: RetryFunction<T>,
   options?: RetryConfig<E>,
 ): Retry<T, E> {
@@ -180,7 +180,7 @@ export function retry<T, E = Error>(
  *
  * @returns A promise wrapping the inner function with retry logic.
  */
-async function retryPromise<T, E = Error>(
+async function retryPromise<T, E = unknown>(
   fn: (attempt: number) => Promise<T>,
   options?: RetryConfig<E>,
 ): Promise<T> {
