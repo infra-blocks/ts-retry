@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-12-30
+
+### Fixed
+
+- The typing of the base class the retry functionality inherits from. The previous typing
+caused the type checking on the `emit` method to be unexistant. This is now fixed and the
+bug, nor its fix, should have any impact in client code.
+
 ## [0.5.0] - 2025-12-26
 
 ### Changed

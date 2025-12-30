@@ -38,7 +38,7 @@
     "test:unit": "mocha --config test/unit/.mocharc.cjs 'test/unit/**/*.spec.ts'"
   },
   "dependencies": {
-    "@infra-blocks/emitter": "^0.2.1",
+    "@infra-blocks/emitter": "^0.3.0",
     "promise-retry": "^2.0.1"
   },
   "devDependencies": {
@@ -54,8 +54,8 @@
     "lefthook": "^1.11.16",
     "mocha": "^10.2.0",
     "prettier": "^2.8.8",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "verror": "^1.10.1"
   },
   "engines": {
